@@ -684,10 +684,11 @@ namespace Eshava.CodeAnalysis
 			return constructorDeclaration;
 		}
 
-		public static PropertyDeclarationSyntax CreateProperty(string name, TypeSyntax type, SyntaxKind modifier, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
+		public static PropertyDeclarationSyntax CreateProperty(string name, TypeSyntax type, SyntaxKind[] modifiers, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
 		{
+			var modifiersToken = modifiers.Select(m => SF.Token(m).WithTrailingTrivia(SF.Space)).ToArray();
 			var propertyDeclaration = SF.PropertyDeclaration(type.WithTrailingTrivia(SF.Space), name)
-				.AddModifiers(SF.Token(modifier).WithTrailingTrivia(SF.Space))
+				.AddModifiers(modifiersToken)
 				.WithLeadingTrivia(SF.Tab, SF.Tab)
 				.WithTrailingTrivia(SF.Space)
 				;
@@ -711,9 +712,9 @@ namespace Eshava.CodeAnalysis
 			return propertyDeclaration;
 		}
 
-		public static PropertyDeclarationSyntax CreateProperty(string name, string type, SyntaxKind modifier, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
+		public static PropertyDeclarationSyntax CreateProperty(string name, string type, SyntaxKind[] modifiers, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
 		{
-			return CreateProperty(name, SF.ParseTypeName(type), modifier, addGetter, addSetter, modifierGetter, modifierSetter, attributes);
+			return CreateProperty(name, SF.ParseTypeName(type), modifiers, addGetter, addSetter, modifierGetter, modifierSetter, attributes);
 		}
 
 		public static MethodDeclarationSyntax AddExpressionBodyToMethod(MethodDeclarationSyntax methodDeclaration, ExpressionSyntax expression)

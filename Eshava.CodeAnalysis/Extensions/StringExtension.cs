@@ -170,7 +170,12 @@ namespace Eshava.CodeAnalysis.Extensions
 
 		public static PropertyDeclarationSyntax ToProperty(this string propertyName, TypeSyntax type, SyntaxKind modifier, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
 		{
-			return SyntaxHelper.CreateProperty(propertyName, type, modifier, addGetter, addSetter, modifierGetter, modifierSetter, attributes);
+			return SyntaxHelper.CreateProperty(propertyName, type, [modifier], addGetter, addSetter, modifierGetter, modifierSetter, attributes);
+		}
+
+		public static PropertyDeclarationSyntax ToProperty(this string propertyName, TypeSyntax type, SyntaxKind[] modifiers, bool addGetter, bool addSetter, SyntaxKind? modifierGetter = null, SyntaxKind? modifierSetter = null, IEnumerable<AttributeSyntax> attributes = null)
+		{
+			return SyntaxHelper.CreateProperty(propertyName, type, modifiers, addGetter, addSetter, modifierGetter, modifierSetter, attributes);
 		}
 
 		public static SimpleLambdaExpressionSyntax ToPropertyExpression(this string parameter, string propertyName, bool toIsNullCheck = false, bool toIsNotNullCheck = false)
