@@ -67,9 +67,9 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateExpressionStatement(expression);
 		}
 
-		public static BinaryExpressionSyntax AsType(this ExpressionSyntax expression, TypeSyntax type)
+		public static BinaryExpressionSyntax AsType(this ExpressionSyntax expression, TypeSyntax type, bool toNullableType = true)
 		{
-			return SyntaxHelper.AsType(expression, type);
+			return SyntaxHelper.AsType(expression, type, toNullableType);
 		}
 
 		public static BinaryExpressionSyntax And(this ExpressionSyntax left, ExpressionSyntax right)

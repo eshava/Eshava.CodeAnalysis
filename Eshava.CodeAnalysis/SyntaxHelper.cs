@@ -329,11 +329,11 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
-		public static BinaryExpressionSyntax AsType(ExpressionSyntax expression, TypeSyntax type)
+		public static BinaryExpressionSyntax AsType(ExpressionSyntax expression, TypeSyntax type, bool toNullableType)
 		{
 			return CreateBinaryExpression(
 				expression,
-				type is NullableTypeSyntax ? type : SF.NullableType(type),
+				((type is NullableTypeSyntax) || !toNullableType) ? type : SF.NullableType(type),
 				SyntaxKind.AsExpression
 			);
 		}
