@@ -9,6 +9,11 @@ namespace Eshava.CodeAnalysis.Extensions
 {
 	public static class StringExtension
 	{
+		public static NameEqualsSyntax ToNameEquals(this string name)
+		{
+			return SF.NameEquals(name);
+		}
+
 		public static NameColonSyntax ToColon(this string name)
 		{
 			return SF.NameColon(name);
