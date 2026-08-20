@@ -5,9 +5,9 @@ namespace Eshava.CodeAnalysis.Extensions
 {
 	public static class VariableDeclarationSyntaxExtensions
 	{
-		public static UsingStatementSyntax Using(this VariableDeclarationSyntax variableDeclaration, List<StatementSyntax> statments)
+		public static UsingStatementSyntax Using(this VariableDeclarationSyntax variableDeclaration, IEnumerable<StatementSyntax> statements)
 		{
-			return SyntaxHelper.CreateUsingStatement(variableDeclaration, statments);
+			return SyntaxHelper.CreateUsingStatement(variableDeclaration, statements);
 		}
 	}
 }

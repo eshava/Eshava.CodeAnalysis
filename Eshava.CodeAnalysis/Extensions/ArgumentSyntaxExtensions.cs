@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Eshava.CodeAnalysis.Extensions
 {
-	public static class ArgumentSyntaxtExtensions
+	public static class ArgumentSyntaxExtensions
 	{
 		public static ArgumentSyntax WithName(this ArgumentSyntax argumentSyntax, string name)
 		{

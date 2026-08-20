@@ -5,7 +5,7 @@ namespace Eshava.CodeAnalysis.Extensions
 {
 	public static class TryStatementSyntaxExtensions
 	{
-		public static TryStatementSyntax Finally(this TryStatementSyntax tryStatement, List<StatementSyntax> finallyBlockStatements)
+		public static TryStatementSyntax Finally(this TryStatementSyntax tryStatement, IEnumerable<StatementSyntax> finallyBlockStatements)
 		{
 			return SyntaxHelper.AddFinally(tryStatement, finallyBlockStatements);
 		}

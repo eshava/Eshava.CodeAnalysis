@@ -14,14 +14,20 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateInstance(type, false, arguments);
 		}
 
+		/// <summary>
+		/// Creates a collection expression for the elements passed in. A collection expression is
+		/// target typed, so <paramref name="type"/> is not part of the generated syntax — it only
+		/// keeps the call chain readable.
+		/// </summary>
 		public static CollectionExpressionSyntax ToCollectionExpressionWithInitializer(this TypeSyntax type, params ExpressionSyntax[] expressions)
 		{
-			return SyntaxHelper.CreateCollectionExpression(type, expressions);
+			return SyntaxHelper.CreateCollectionExpression(expressions);
 		}
 
+		/// <inheritdoc cref="ToCollectionExpressionWithInitializer"/>
 		public static CollectionExpressionSyntax ToCollectionExpression(this TypeSyntax type)
 		{
-			return SyntaxHelper.CreateCollectionExpression(type);
+			return SyntaxHelper.CreateCollectionExpression();
 		}
 
 		public static TupleElementSyntax ToTupleElement(this TypeSyntax typeSyntax)
@@ -37,6 +43,15 @@ namespace Eshava.CodeAnalysis.Extensions
 		public static TypeSyntax AsNullable(this TypeSyntax name)
 		{
 			return SyntaxHelper.CreateNullableType(name);
+		}
+
+		/// <summary>
+		/// Creates a type constraint, so a type parameter can be constrained to an interface or a
+		/// base class (<c>where T : IAlpha</c>).
+		/// </summary>
+		public static TypeConstraintSyntax ToConstraint(this TypeSyntax type)
+		{
+			return SyntaxHelper.CreateTypeConstraint(type);
 		}
 	}
 }

@@ -67,7 +67,12 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateExpressionStatement(expression);
 		}
 
-		public static BinaryExpressionSyntax AsType(this ExpressionSyntax expression, TypeSyntax type, bool toNullableType = true)
+		/// <summary>
+		/// Creates an as-expression. <paramref name="toNullableType"/> has no default on purpose:
+		/// whether the target type becomes nullable changes the generated code and is a decision of
+		/// the caller.
+		/// </summary>
+		public static BinaryExpressionSyntax AsType(this ExpressionSyntax expression, TypeSyntax type, bool toNullableType)
 		{
 			return SyntaxHelper.AsType(expression, type, toNullableType);
 		}
@@ -137,19 +142,32 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateMemberAccess(target, name, withNullCheck);
 		}
 
+		/// <summary>
+		/// Creates an element access expression. <see cref="AccessArray"/>, <see cref="AccessList"/>
+		/// and <see cref="AccessDictionary"/> are names for the same syntax and exist to make the
+		/// intention readable at the call site.
+		/// </summary>
+		public static ExpressionSyntax AccessElement(this ExpressionSyntax target, params ArgumentSyntax[] arguments)
+		{
+			return SyntaxHelper.CreateElementAccess(target, arguments);
+		}
+
+		/// <inheritdoc cref="AccessElement"/>
 		public static ExpressionSyntax AccessArray(this ExpressionSyntax target, params ArgumentSyntax[] arguments)
 		{
-			return SyntaxHelper.CreateEnumerableAccess(target, arguments);
+			return target.AccessElement(arguments);
 		}
 
+		/// <inheritdoc cref="AccessElement"/>
 		public static ExpressionSyntax AccessList(this ExpressionSyntax target, params ArgumentSyntax[] arguments)
 		{
-			return SyntaxHelper.CreateEnumerableAccess(target, arguments);
+			return target.AccessElement(arguments);
 		}
 
+		/// <inheritdoc cref="AccessElement"/>
 		public static ExpressionSyntax AccessDictionary(this ExpressionSyntax target, params ArgumentSyntax[] arguments)
 		{
-			return SyntaxHelper.CreateEnumerableAccess(target, arguments);
+			return target.AccessElement(arguments);
 		}
 
 		public static IfStatementSyntax If(this ExpressionSyntax condition, params StatementSyntax[] statements)

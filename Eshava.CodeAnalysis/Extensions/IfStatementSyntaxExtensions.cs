@@ -14,8 +14,22 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateElseIfStatement(ifStatement, SyntaxHelper.CreateIfStatement(elseIfStatement, statements));
 		}
 
+		/// <summary>
+		/// Nests the else-if statements passed in, from the last one up to the first, and appends the
+		/// resulting chain to <paramref name="ifStatement"/>.
+		/// </summary>
 		public static IfStatementSyntax ElseIf(this IfStatementSyntax ifStatement, IfStatementSyntax[] elseIfStatements, params StatementSyntax[] elseStatements)
 		{
+			if (elseIfStatements is null || elseIfStatements.Length == 0)
+			{
+				if (elseStatements is null || elseStatements.Length == 0)
+				{
+					return ifStatement;
+				}
+
+				return SyntaxHelper.CreateElseStatement(ifStatement, elseStatements);
+			}
+
 			var local = elseIfStatements[elseIfStatements.Length - 1];
 			if (elseStatements.Length > 0)
 			{

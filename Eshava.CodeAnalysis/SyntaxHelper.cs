@@ -11,6 +11,34 @@ namespace Eshava.CodeAnalysis
 {
 	public static class SyntaxHelper
 	{
+		/// <summary>
+		/// Number of tabs the opening quotes of a raw string are indented with by default.
+		/// </summary>
+		public const int DEFAULT_RAW_STRING_INDENTATION = 3;
+
+		private static readonly HashSet<SyntaxKind> _supportedModifiers = new HashSet<SyntaxKind>
+		{
+			SyntaxKind.AbstractKeyword,
+			SyntaxKind.AsyncKeyword,
+			SyntaxKind.ConstKeyword,
+			SyntaxKind.ExternKeyword,
+			SyntaxKind.FixedKeyword,
+			SyntaxKind.InternalKeyword,
+			SyntaxKind.NewKeyword,
+			SyntaxKind.OverrideKeyword,
+			SyntaxKind.PartialKeyword,
+			SyntaxKind.PrivateKeyword,
+			SyntaxKind.ProtectedKeyword,
+			SyntaxKind.PublicKeyword,
+			SyntaxKind.ReadOnlyKeyword,
+			SyntaxKind.RefKeyword,
+			SyntaxKind.SealedKeyword,
+			SyntaxKind.StaticKeyword,
+			SyntaxKind.UnsafeKeyword,
+			SyntaxKind.VirtualKeyword,
+			SyntaxKind.VolatileKeyword
+		};
+
 		public static CompilationUnitSyntax CreateCompilationUnit()
 		{
 			return SF.CompilationUnit();
@@ -25,7 +53,7 @@ namespace Eshava.CodeAnalysis
 		{
 			var enumDeclaration = SF.EnumDeclaration(enumerationName)
 				.WithModifiers(CreateTokenList(modifiers))
-				.WithMembers(CreateSeparatedList(true, enumMembers.ToArray()));
+				.WithMembers(CreateSeparatedList(true, enumMembers?.ToArray() ?? Array.Empty<EnumMemberDeclarationSyntax>()));
 
 			return enumDeclaration;
 		}
@@ -58,15 +86,20 @@ namespace Eshava.CodeAnalysis
 			return interfaceDeclaration;
 		}
 
-		public static MethodDeclarationSyntax AddConstaints(MethodDeclarationSyntax methodDeclaration, params (string Name, ClassOrStructConstraintSyntax[] Constraints)[] constraints)
+		public static MethodDeclarationSyntax AddConstraints(MethodDeclarationSyntax methodDeclaration, params (string Name, TypeParameterConstraintSyntax[] Constraints)[] constraints)
 		{
+			if (!(constraints?.Any() ?? false))
+			{
+				return methodDeclaration;
+			}
+
 			var typeParameterConstraints = constraints.Select(
 				c => SF.TypeParameterConstraintClause(c.Name.ToIdentifierName())
-					.WithConstraints(CreateSeparatedList<TypeParameterConstraintSyntax>(true, c.Constraints))
+					.WithConstraints(CreateSeparatedList(true, c.Constraints))
 			);
 
 			return methodDeclaration
-				.WithConstraintClauses(SF.List(typeParameterConstraints));
+				.WithConstraintClauses(methodDeclaration.ConstraintClauses.AddRange(typeParameterConstraints));
 		}
 
 		public static MethodDeclarationSyntax AddSemicolon(MethodDeclarationSyntax methodDeclaration)
@@ -82,6 +115,11 @@ namespace Eshava.CodeAnalysis
 		public static SimpleBaseTypeSyntax CreateSimpleBaseType(TypeSyntax type)
 		{
 			return SF.SimpleBaseType(type);
+		}
+
+		public static TypeConstraintSyntax CreateTypeConstraint(TypeSyntax type)
+		{
+			return SF.TypeConstraint(type);
 		}
 
 		public static GenericNameSyntax CreateGenericName(string name, params TypeSyntax[] genericType)
@@ -122,9 +160,9 @@ namespace Eshava.CodeAnalysis
 			return SF.ArgumentList(CreateSeparatedList(true, arguments));
 		}
 
-		public static TypeParameterListSyntax CreateArgumentList(params TypeParameterSyntax[] arguments)
+		public static TypeParameterListSyntax CreateTypeParameterList(params TypeParameterSyntax[] typeParameters)
 		{
-			return SF.TypeParameterList(CreateSeparatedList(true, arguments));
+			return SF.TypeParameterList(CreateSeparatedList(true, typeParameters));
 		}
 
 		public static AttributeArgumentListSyntax CreateArgumentList(params AttributeArgumentSyntax[] arguments)
@@ -134,6 +172,11 @@ namespace Eshava.CodeAnalysis
 
 		public static SeparatedSyntaxList<T> CreateSeparatedList<T>(bool withLineBreak, params T[] arguments) where T : CSharpSyntaxNode
 		{
+			if (arguments is null || arguments.Length == 0)
+			{
+				return SF.SeparatedList<T>();
+			}
+
 			if (arguments.Length == 1)
 			{
 				return SF.SingletonSeparatedList<T>(arguments[0]);
@@ -144,6 +187,11 @@ namespace Eshava.CodeAnalysis
 
 		public static SyntaxNodeOrToken[] CreateSyntaxNodeOrTokenArray<T>(bool withLineBreak, params T[] arguments) where T : CSharpSyntaxNode
 		{
+			if (arguments is null)
+			{
+				return Array.Empty<SyntaxNodeOrToken>();
+			}
+
 			var syntaxNodeOrToken = new List<SyntaxNodeOrToken>();
 
 			for (var i = 0; i < arguments.Length; i++)
@@ -234,10 +282,10 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
-		public static IfStatementSyntax CreateElseIfStatement(IfStatementSyntax ifStatement, IfStatementSyntax elseIifStatement)
+		public static IfStatementSyntax CreateElseIfStatement(IfStatementSyntax ifStatement, IfStatementSyntax elseIfStatement)
 		{
 			return ifStatement.WithElse(
-				SF.ElseClause(elseIifStatement)
+				SF.ElseClause(elseIfStatement)
 			);
 		}
 
@@ -338,7 +386,7 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
-		public static BinaryExpressionSyntax CreateBinaryExpression(this ExpressionSyntax left, ExpressionSyntax right, SyntaxKind kind)
+		public static BinaryExpressionSyntax CreateBinaryExpression(ExpressionSyntax left, ExpressionSyntax right, SyntaxKind kind)
 		{
 			return SF.BinaryExpression(
 				kind,
@@ -347,7 +395,7 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
-		public static PrefixUnaryExpressionSyntax CreateNegateExpression(this ExpressionSyntax expression)
+		public static PrefixUnaryExpressionSyntax CreateNegateExpression(ExpressionSyntax expression)
 		{
 			return SF.PrefixUnaryExpression(
 				SyntaxKind.LogicalNotExpression,
@@ -414,7 +462,7 @@ namespace Eshava.CodeAnalysis
 			return CreateMemberAccessCall(
 				target.ToIdentifierName(),
 				method.ToIdentifierName(),
-				false,
+				withNullCheck,
 				arguments
 			);
 		}
@@ -462,7 +510,7 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
-		public static ExpressionSyntax CreateEnumerableAccess(ExpressionSyntax target, params ArgumentSyntax[] arguments)
+		public static ExpressionSyntax CreateElementAccess(ExpressionSyntax target, params ArgumentSyntax[] arguments)
 		{
 			return SF.ElementAccessExpression(target)
 				.WithArgumentList(
@@ -513,24 +561,27 @@ namespace Eshava.CodeAnalysis
 
 		public static ParameterSyntax AddModifiers(ParameterSyntax parameter, params SyntaxKind[] kinds)
 		{
+			if (!(kinds?.Any() ?? false))
+			{
+				return parameter;
+			}
+
 			return parameter
 				.WithModifiers(
-					SF.TokenList(kinds.Select(SF.Token))
+					parameter.Modifiers.AddRange(kinds.Select(SF.Token))
 				);
 		}
 
 		public static ParameterSyntax AddAttributes(ParameterSyntax parameter, params AttributeSyntax[] attributes)
 		{
-			if (attributes.Length == 0)
+			if (!(attributes?.Any() ?? false))
 			{
 				return parameter;
 			}
 
 			return parameter.WithAttributeLists(
-				SF.List(
-					attributes
-						.Select(a => SF.AttributeList(SF.SingletonSeparatedList(a)))
-						.ToArray()
+				parameter.AttributeLists.AddRange(
+					attributes.Select(a => SF.AttributeList(SF.SingletonSeparatedList(a)))
 				)
 			);
 		}
@@ -560,32 +611,32 @@ namespace Eshava.CodeAnalysis
 			return argumentSyntax.WithNameColon(SF.NameColon(SF.IdentifierName(name)));
 		}
 
-		public static UsingStatementSyntax CreateUsingStatement(VariableDeclarationSyntax variableDeclaration, IEnumerable<StatementSyntax> statments)
+		public static UsingStatementSyntax CreateUsingStatement(VariableDeclarationSyntax variableDeclaration, IEnumerable<StatementSyntax> statements)
 		{
-			return SF.UsingStatement(SF.Block(statments))
+			return SF.UsingStatement(SF.Block(statements ?? Enumerable.Empty<StatementSyntax>()))
 				.WithDeclaration(variableDeclaration);
 		}
 
-		public static TryStatementSyntax CreateTryCatchBlock(IEnumerable<StatementSyntax> tryBlockStatements, IEnumerable<StatementSyntax> catchBlockStatements)
+		public static TryStatementSyntax CreateTryCatchBlock(IEnumerable<StatementSyntax> tryBlockStatements, IEnumerable<StatementSyntax> catchBlockStatements, string exceptionTypeName = "Exception", string exceptionVariableName = "ex")
 		{
 			return SF.TryStatement(
 				SF.SingletonList<CatchClauseSyntax>(
 					SF.CatchClause()
 					.WithDeclaration(
 						SF.CatchDeclaration(
-							SF.IdentifierName("Exception"))
+							exceptionTypeName.ToIdentifierName())
 						.WithIdentifier(
-							SF.Identifier("ex")))
+							exceptionVariableName.ToIdentifier()))
 					.WithBlock(
-						SF.Block(catchBlockStatements))))
-				.WithBlock(SF.Block(tryBlockStatements));
+						SF.Block(catchBlockStatements ?? Enumerable.Empty<StatementSyntax>()))))
+				.WithBlock(SF.Block(tryBlockStatements ?? Enumerable.Empty<StatementSyntax>()));
 		}
 
 		public static TryStatementSyntax AddFinally(TryStatementSyntax tryStatement, IEnumerable<StatementSyntax> finallyBlockStatements)
 		{
 			return tryStatement.WithFinally(
 				SF.FinallyClause(
-					SF.Block(finallyBlockStatements)
+					SF.Block(finallyBlockStatements ?? Enumerable.Empty<StatementSyntax>())
 				)
 			);
 		}
@@ -635,9 +686,13 @@ namespace Eshava.CodeAnalysis
 				);
 		}
 
-		public static CollectionExpressionSyntax CreateCollectionExpression(this TypeSyntax type, params ExpressionSyntax[] expressions)
+		/// <summary>
+		/// Creates a collection expression. A collection expression is target typed, so the type of
+		/// the collection is never part of the generated syntax.
+		/// </summary>
+		public static CollectionExpressionSyntax CreateCollectionExpression(params ExpressionSyntax[] expressions)
 		{
-			if (expressions.Length == 0)
+			if (expressions is null || expressions.Length == 0)
 			{
 				return SF.CollectionExpression();
 			}
@@ -689,7 +744,6 @@ namespace Eshava.CodeAnalysis
 			var modifiersToken = modifiers.Select(m => SF.Token(m).WithTrailingTrivia(SF.Space)).ToArray();
 			var propertyDeclaration = SF.PropertyDeclaration(type.WithTrailingTrivia(SF.Space), name)
 				.AddModifiers(modifiersToken)
-				.WithLeadingTrivia(SF.Tab, SF.Tab)
 				.WithTrailingTrivia(SF.Space)
 				;
 
@@ -722,16 +776,13 @@ namespace Eshava.CodeAnalysis
 			return methodDeclaration
 				.WithExpressionBody(SF.ArrowExpressionClause(expression))
 				.WithSemicolonToken(SyntaxConstants.SemicolonToken);
-			;
 		}
-
 
 		public static PropertyDeclarationSyntax AddExpressionBodyToProperty(PropertyDeclarationSyntax propertyDeclaration, ExpressionSyntax expression)
 		{
 			return propertyDeclaration
 				.WithExpressionBody(SF.ArrowExpressionClause(expression))
 				.WithSemicolonToken(SyntaxConstants.SemicolonToken);
-			;
 		}
 
 		public static MethodDeclarationSyntax CreateMethodDefinition(string name, TypeSyntax returnType, params SyntaxKind[] modifier)
@@ -757,12 +808,31 @@ namespace Eshava.CodeAnalysis
 
 		public static MethodDeclarationSyntax AddMethodParameter(MethodDeclarationSyntax methodDeclaration, params ParameterSyntax[] parameters)
 		{
-			return methodDeclaration.WithParameterList(SF.ParameterList(CreateSeparatedList(true, parameters)));
+			if (!(parameters?.Any() ?? false))
+			{
+				return methodDeclaration;
+			}
+
+			var allParameters = methodDeclaration.ParameterList.Parameters
+				.Concat(parameters)
+				.ToArray();
+
+			return methodDeclaration.WithParameterList(SF.ParameterList(CreateSeparatedList(true, allParameters)));
 		}
 
 		public static MethodDeclarationSyntax AddMethodTypeParameter(MethodDeclarationSyntax methodDeclaration, params TypeParameterSyntax[] typeParameters)
 		{
-			return methodDeclaration.WithTypeParameterList(CreateArgumentList(typeParameters));
+			if (!(typeParameters?.Any() ?? false))
+			{
+				return methodDeclaration;
+			}
+
+			var existingTypeParameters = methodDeclaration.TypeParameterList?.Parameters ?? SF.SeparatedList<TypeParameterSyntax>();
+			var allTypeParameters = existingTypeParameters
+				.Concat(typeParameters)
+				.ToArray();
+
+			return methodDeclaration.WithTypeParameterList(CreateTypeParameterList(allTypeParameters));
 		}
 
 		public static AwaitExpressionSyntax CreateAwaitExpression(ExpressionSyntax expression)
@@ -818,12 +888,17 @@ namespace Eshava.CodeAnalysis
 				itemType,
 				SF.Identifier(itemName),
 				enumerable,
-				SF.Block(bodyStatements.ToArray())
+				SF.Block(bodyStatements ?? Enumerable.Empty<StatementSyntax>())
 			);
 		}
 
 		public static UsingDirectiveSyntax[] CreateUsings(IEnumerable<string> @usings)
 		{
+			if (@usings is null)
+			{
+				return Array.Empty<UsingDirectiveSyntax>();
+			}
+
 			return @usings.Select(u => SF.UsingDirective(SF.ParseName(u))).ToArray();
 		}
 
@@ -831,12 +906,22 @@ namespace Eshava.CodeAnalysis
 		{
 			var classModifierList = SF.TokenList();
 
+			if (tokens is null)
+			{
+				return classModifierList;
+			}
+
 			foreach (var token in tokens)
 			{
+				if (String.IsNullOrWhiteSpace(token))
+				{
+					continue;
+				}
+
 				var syntaxToken = GetToken(token);
 				if (syntaxToken is null)
 				{
-					continue;
+					throw new ArgumentException($"'{token}' is not a supported modifier.", nameof(tokens));
 				}
 
 				classModifierList = classModifierList.Add(syntaxToken.Value);
@@ -848,6 +933,11 @@ namespace Eshava.CodeAnalysis
 		public static SyntaxTokenList CreateTokenList(params SyntaxKind[] syntaxKinds)
 		{
 			var classModifierList = SF.TokenList();
+
+			if (syntaxKinds is null)
+			{
+				return classModifierList;
+			}
 
 			foreach (var syntaxKind in syntaxKinds)
 			{
@@ -874,8 +964,20 @@ namespace Eshava.CodeAnalysis
 
 		public static InterpolatedStringExpressionSyntax CreateInterpolatedRawStringExpression(params InterpolatedStringContentSyntax[] stringContent)
 		{
-			// work arround
-			return SF.InterpolatedStringExpression(SF.Token(SF.TriviaList(), SyntaxKind.InterpolatedMultiLineRawStringStartToken, "$\"\"\"\n", "$\t\t\t\"\"\"\n", SF.TriviaList()))
+			return CreateInterpolatedRawStringExpression(DEFAULT_RAW_STRING_INDENTATION, stringContent);
+		}
+
+		/// <summary>
+		/// Creates a multi line raw interpolated string. <paramref name="indentationTabs"/> ends up in
+		/// the value text of the start token, which is where the compiler expects the indentation of
+		/// the opening quotes. It does not change the generated code — that one comes from the token
+		/// text.
+		/// </summary>
+		public static InterpolatedStringExpressionSyntax CreateInterpolatedRawStringExpression(int indentationTabs, params InterpolatedStringContentSyntax[] stringContent)
+		{
+			var indentation = new String('\t', indentationTabs < 0 ? 0 : indentationTabs);
+
+			return SF.InterpolatedStringExpression(SF.Token(SF.TriviaList(), SyntaxKind.InterpolatedMultiLineRawStringStartToken, "$\"\"\"\n", $"${indentation}\"\"\"\n", SF.TriviaList()))
 				.WithContents(SF.List<InterpolatedStringContentSyntax>(stringContent))
 				.WithStringEndToken(SF.Token(SF.TriviaList(), SyntaxKind.InterpolatedRawStringEndToken, "\n\"\"\"", "\n\"\"\"", SF.TriviaList()));
 
@@ -945,12 +1047,12 @@ namespace Eshava.CodeAnalysis
 				.WithSections(SF.List(switchSections));
 		}
 
-		public static SwitchSectionSyntax CreateSwitchSection((ExpressionSyntax Condition, BinaryExpressionSyntax WhenClause)[] switchConditions, List<StatementSyntax> switchStatements)
+		public static SwitchSectionSyntax CreateSwitchSection((ExpressionSyntax Condition, BinaryExpressionSyntax WhenClause)[] switchConditions, IEnumerable<StatementSyntax> switchStatements)
 		{
-			switchStatements.Add(SF.BreakStatement());
+			var statements = CreateSectionStatements(switchStatements);
 
 			var conditions = new List<SwitchLabelSyntax>();
-			foreach (var switchCondition in switchConditions)
+			foreach (var switchCondition in switchConditions ?? Array.Empty<(ExpressionSyntax Condition, BinaryExpressionSyntax WhenClause)>())
 			{
 				if (switchCondition.WhenClause is null)
 				{
@@ -974,35 +1076,42 @@ namespace Eshava.CodeAnalysis
 
 			return SF.SwitchSection()
 				.WithLabels(SF.List(conditions))
-				.WithStatements(SF.List(switchStatements));
+				.WithStatements(SF.List(statements));
 		}
 
-		public static SwitchSectionSyntax CreateDefaultSwitchSection(List<StatementSyntax> switchStatements)
+		public static SwitchSectionSyntax CreateDefaultSwitchSection(IEnumerable<StatementSyntax> switchStatements)
 		{
-			switchStatements.Add(SF.BreakStatement());
-
 			return SF.SwitchSection()
 				.WithLabels(SF.SingletonList<SwitchLabelSyntax>(SF.DefaultSwitchLabel()))
-				.WithStatements(SF.List(switchStatements));
+				.WithStatements(SF.List(CreateSectionStatements(switchStatements)));
+		}
+
+		/// <summary>
+		/// Copies the statements of a switch section and terminates them with a break statement. The
+		/// statements passed in are never modified.
+		/// </summary>
+		private static List<StatementSyntax> CreateSectionStatements(IEnumerable<StatementSyntax> switchStatements)
+		{
+			var statements = switchStatements?.ToList() ?? new List<StatementSyntax>();
+
+			if (!(statements.LastOrDefault() is BreakStatementSyntax))
+			{
+				statements.Add(SF.BreakStatement());
+			}
+
+			return statements;
 		}
 
 		private static SyntaxToken? GetToken(string token)
 		{
-			return token.ToLower() switch
+			var syntaxKind = SyntaxFacts.GetKeywordKind(token.ToLowerInvariant());
+
+			if (!_supportedModifiers.Contains(syntaxKind))
 			{
-				"abstract" => (SyntaxToken?)SF.Token(SyntaxKind.AbstractKeyword),
-				"async" => (SyntaxToken?)SF.Token(SyntaxKind.AsyncKeyword),
-				"internal" => (SyntaxToken?)SF.Token(SyntaxKind.InternalKeyword),
-				"override" => (SyntaxToken?)SF.Token(SyntaxKind.OverrideKeyword),
-				"partial" => (SyntaxToken?)SF.Token(SyntaxKind.PartialKeyword),
-				"private" => (SyntaxToken?)SF.Token(SyntaxKind.PrivateKeyword),
-				"protected" => (SyntaxToken?)SF.Token(SyntaxKind.ProtectedKeyword),
-				"public" => (SyntaxToken?)SF.Token(SyntaxKind.PublicKeyword),
-				"sealed" => (SyntaxToken?)SF.Token(SyntaxKind.SealedKeyword),
-				"static" => (SyntaxToken?)SF.Token(SyntaxKind.StaticKeyword),
-				"virtual" => (SyntaxToken?)SF.Token(SyntaxKind.VirtualKeyword),
-				_ => null,
-			};
+				return null;
+			}
+
+			return SF.Token(syntaxKind);
 		}
 	}
 }

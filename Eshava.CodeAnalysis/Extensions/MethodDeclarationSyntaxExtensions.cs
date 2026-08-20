@@ -37,19 +37,28 @@ namespace Eshava.CodeAnalysis.Extensions
 			return methodDeclaration.WithModifiers(SyntaxHelper.CreateTokenList(modifiers));
 		}
 
-		public static MethodDeclarationSyntax WithParameter(this MethodDeclarationSyntax methodDeclaration, params ParameterSyntax[] parameters)
+		/// <summary>
+		/// Appends parameters to the parameters the method already has.
+		/// </summary>
+		public static MethodDeclarationSyntax AddParameter(this MethodDeclarationSyntax methodDeclaration, params ParameterSyntax[] parameters)
 		{
 			return SyntaxHelper.AddMethodParameter(methodDeclaration, parameters);
 		}
 
-		public static MethodDeclarationSyntax WithTypeParameter(this MethodDeclarationSyntax methodDeclaration, params TypeParameterSyntax[] typeParameters)
+		/// <summary>
+		/// Appends type parameters to the type parameters the method already has.
+		/// </summary>
+		public static MethodDeclarationSyntax AddTypeParameter(this MethodDeclarationSyntax methodDeclaration, params TypeParameterSyntax[] typeParameters)
 		{
 			return SyntaxHelper.AddMethodTypeParameter(methodDeclaration, typeParameters);
 		}
 
-		public static MethodDeclarationSyntax WithConstraints(this MethodDeclarationSyntax methodDeclaration, params (string Name, ClassOrStructConstraintSyntax[] Constraints)[] constraints)
+		/// <summary>
+		/// Appends constraint clauses to the clauses the method already has.
+		/// </summary>
+		public static MethodDeclarationSyntax AddConstraints(this MethodDeclarationSyntax methodDeclaration, params (string Name, TypeParameterConstraintSyntax[] Constraints)[] constraints)
 		{
-			return SyntaxHelper.AddConstaints(methodDeclaration, constraints);
+			return SyntaxHelper.AddConstraints(methodDeclaration, constraints);
 		}
 
 		public static MethodDeclarationSyntax WithExpressionBody(this MethodDeclarationSyntax methodDeclaration, ExpressionSyntax expression)

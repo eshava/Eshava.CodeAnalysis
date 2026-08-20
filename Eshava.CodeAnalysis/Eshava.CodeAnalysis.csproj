@@ -6,11 +6,12 @@
 		<RepositoryUrl>https://github.com/eshava/Eshava.CodeAnalysis</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/eshava/Eshava.CodeAnalysis</PackageProjectUrl>
 		<Description>A Roslyn-based library that defines extension methods to simplify the use of the SyntaxFactory</Description>
-		<Version>1.0.0</Version>
 		<Authors>Eshava</Authors>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>C#;Roslyn;CodeAnalysis</PackageTags>
+		<!-- This assembly is loaded into the compiler, so the analyzer rules apply to it as well. -->
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +26,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!--
+			Roslyn flows on to the consumers, so this version is their lower bound: NuGet reports a
+			consumer that wants an older one as NU1605 - an error, not a warning. Raise it only when
+			the library actually needs something newer, and expect every consuming generator to be
+			raised with it.
+		-->
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" PrivateAssets="all" />
 	</ItemGroup>
 
 </Project>

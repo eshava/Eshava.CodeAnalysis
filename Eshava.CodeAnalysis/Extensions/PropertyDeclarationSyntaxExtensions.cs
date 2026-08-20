@@ -16,9 +16,9 @@ namespace Eshava.CodeAnalysis.Extensions
 			return property.AddAccessor(SyntaxKind.SetAccessorDeclaration, modifier);
 		}
 
-		private static PropertyDeclarationSyntax AddAccessor(this PropertyDeclarationSyntax property, SyntaxKind accessortype, SyntaxKind? modifier = null)
+		private static PropertyDeclarationSyntax AddAccessor(this PropertyDeclarationSyntax property, SyntaxKind accessorType, SyntaxKind? modifier = null)
 		{
-			var accessorDeclaration = SF.AccessorDeclaration(accessortype);
+			var accessorDeclaration = SF.AccessorDeclaration(accessorType);
 			if (modifier.HasValue)
 			{
 				accessorDeclaration = accessorDeclaration

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,7 +9,7 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Eshava.CodeAnalysis.Extensions
 {
-	public static class StringExtension
+	public static class StringExtensions
 	{
 		public static NameEqualsSyntax ToNameEquals(this string name)
 		{
@@ -81,26 +83,42 @@ namespace Eshava.CodeAnalysis.Extensions
 
 		public static LiteralExpressionSyntax ToLiteralInt(this string value)
 		{
-			return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(Convert.ToInt32(value)));
+			return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(Int32.Parse(value, CultureInfo.InvariantCulture)));
 		}
 
 		public static LiteralExpressionSyntax ToLiteralLong(this string value)
 		{
-			return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(Convert.ToInt64(value)));
+			return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(Int64.Parse(value, CultureInfo.InvariantCulture)));
 		}
 
 		public static LiteralExpressionSyntax ToLiteralBool(this string value)
 		{
-			return Convert.ToBoolean(value)
+			return Boolean.Parse(value)
 				? SF.LiteralExpression(SyntaxKind.TrueLiteralExpression)
 				: SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
 		}
 
+		/// <summary>
+		/// Turns a dotted name into a member access expression. Every segment is kept, so
+		/// "Alpha.Beta.Gamma" becomes <c>Alpha.Beta.Gamma</c>.
+		/// </summary>
 		public static MemberAccessExpressionSyntax ToConstantExpression(this string expression)
 		{
-			var parts = expression.Split('.');
+			var parts = expression?.Split('.') ?? Array.Empty<string>();
 
-			return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(parts[0]), SF.IdentifierName(parts[1]));
+			if (parts.Length < 2)
+			{
+				throw new ArgumentException($"'{expression}' is not a member access expression. At least two segments separated by a dot are required.", nameof(expression));
+			}
+
+			var memberAccess = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, parts[0].ToIdentifierName(), parts[1].ToIdentifierName());
+
+			foreach (var part in parts.Skip(2))
+			{
+				memberAccess = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccess, part.ToIdentifierName());
+			}
+
+			return memberAccess;
 		}
 
 		public static FieldDeclarationSyntax ToField(this string name, TypeSyntax type, ExpressionSyntax expression = null)
@@ -128,12 +146,6 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateField(type, name, false, true, true, expression);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="genericType"></param>
-		/// <returns></returns>
 		public static GenericNameSyntax AsGeneric(this string name, params TypeSyntax[] genericType)
 		{
 			return SyntaxHelper.CreateGenericName(name, genericType);
@@ -218,7 +230,7 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.CreateInterface(interfaceName, attributes, modifiers);
 		}
 
-		public static ConstructorDeclarationSyntax ToContructor(this string name, IEnumerable<NameAndType> parameters, IEnumerable<StatementSyntax> bodyStatements, params SyntaxKind[] modifier)
+		public static ConstructorDeclarationSyntax ToConstructor(this string name, IEnumerable<NameAndType> parameters, IEnumerable<StatementSyntax> bodyStatements, params SyntaxKind[] modifier)
 		{
 			return SyntaxHelper.CreateConstructor(name, parameters, bodyStatements, modifier);
 		}
