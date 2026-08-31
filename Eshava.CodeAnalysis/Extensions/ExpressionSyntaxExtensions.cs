@@ -52,6 +52,11 @@ namespace Eshava.CodeAnalysis.Extensions
 			return SyntaxHelper.OrAssign(left, right);
 		}
 
+		public static ExpressionSyntax CoalesceAssign(this ExpressionSyntax left, ExpressionSyntax right)
+		{
+			return SyntaxHelper.CoalesceAssign(left, right);
+		}
+
 		public static ArgumentSyntax ToArgument(this ExpressionSyntax expression)
 		{
 			return SyntaxHelper.CreateArgument(expression);

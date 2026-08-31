@@ -377,6 +377,15 @@ namespace Eshava.CodeAnalysis
 			);
 		}
 
+		public static ExpressionSyntax CoalesceAssign(ExpressionSyntax left, ExpressionSyntax right)
+		{
+			return SF.AssignmentExpression(
+				SyntaxKind.CoalesceAssignmentExpression,
+				left,
+				right
+			);
+		}
+
 		public static BinaryExpressionSyntax AsType(ExpressionSyntax expression, TypeSyntax type, bool toNullableType)
 		{
 			return CreateBinaryExpression(

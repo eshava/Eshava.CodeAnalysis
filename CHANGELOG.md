@@ -3,6 +3,15 @@
 Notable changes per released version, newest first. Versions before 1.0.7 are not documented here —
 the Git history is the source for those.
 
+## 1.0.8
+
+### Added
+
+* `CoalesceAssign` on `SyntaxHelper` and as an extension on `ExpressionSyntax`, producing
+  `left ??= right`. The assignment helpers covered every compound operator except this one, so a
+  generator that wanted a null fallback had to build an `if` block or fall back to
+  `left = left ?? right` through `AddNullFallback`.
+
 ## 1.0.7
 
 ### Breaking

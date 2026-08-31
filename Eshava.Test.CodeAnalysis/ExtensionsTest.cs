@@ -239,5 +239,15 @@ namespace Eshava.Test.CodeAnalysis
 			// Assert
 			result.Should().HaveCount(1);
 		}
+
+		[TestMethod]
+		public void CoalesceAssignTest()
+		{
+			// Act
+			var result = "request".ToIdentifierName().CoalesceAssign("AlphaRequest".ToType().ToInstance());
+
+			// Assert
+			result.NormalizeWhitespace().ToFullString().Should().Be("request ??= new AlphaRequest()");
+		}
 	}
 }
